@@ -1,0 +1,13 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Env
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+serveo_output.log 

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Панорамный Просмотрщик</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Верхняя панель управления -->
+        <header class="header">
+            <div class="header__content">
+                <h1 class="header__title">3D Панорамный Просмотрщик</h1>
+                <div class="header__controls">
+                    <button class="btn btn--secondary btn--sm" id="uploadBtn" style="display:none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Загрузить
+                    </button>
+                    <button class="btn btn--secondary btn--sm" id="autoRotateBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 4v6h6"></path>
+                            <path d="m1 10 2.3-2.3a9 9 0 1 1 12.4 0L18 10"></path>
+                        </svg>
+                        Авто-поворот
+                    </button>
+                    <button class="btn btn--secondary btn--sm" id="resetCameraBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
+                        </svg>
+                        Сброс
+                    </button>
+                    <button class="btn btn--secondary btn--sm" id="fullscreenBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                        Полный экран
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Основная область просмотра -->
+            <div class="viewer">
+                <div class="viewer__container" id="viewerContainer">
+                    <!-- Three.js canvas будет добавлен здесь -->
+                </div>
+                
+                <!-- Зона drag & drop -->
+                <div class="drop-zone" id="dropZone" style="display:none;">
+                    <div class="drop-zone__content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21,15 16,10 5,21"></polyline>
+                        </svg>
+                        <p>Перетащите панорамные изображения сюда</p>
+                        <p class="drop-zone__hint">или нажмите кнопку "Загрузить"</p>
+                    </div>
+                </div>
+
+                <!-- Индикатор загрузки -->
+                <div class="loading-indicator" id="loadingIndicator">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка панорамы...</p>
+                </div>
+
+                <!-- Элементы управления просмотром -->
+                <div class="viewer__controls">
+                    <div class="control-hint">
+                        <span>Мышь/тач - поворот | Колесо - зум | Стрелки - навигация</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Боковая панель с галереей -->
+            <aside class="sidebar">
+                <div class="sidebar__header">
+                    <h3>Галерея панорам</h3>
+                    <span class="gallery-count" id="galleryCount">1 изображение</span>
+                </div>
+                <div class="gallery" id="gallery">
+                    <!-- Панорамы будут добавлены здесь -->
+                </div>
+            </aside>
+        </div>
+
+        <!-- Уведомления -->
+        <div class="notifications" id="notifications">
+            <!-- Уведомления будут добавлены здесь -->
+        </div>
+    </div>
+
+    <!-- Скрытый input для выбора файлов -->
+    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Основной скрипт (добавлен параметр версии для обхода кэша Telegram) -->
+    <script src="app.js?v=3"></script>
+</body>
+</html>
