@@ -10,4 +10,7 @@ __pycache__/
 .DS_Store
 
 # Logs
-serveo_output.log 
+serveo_output.log
+lhr_output.log
+ngrok.log
+cloudflared_output.log 

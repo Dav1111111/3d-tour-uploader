@@ -36,6 +36,11 @@ class PanoramicViewer {
         this.loadPreloadedPanoramas();
         this.updateGalleryCounter();
         this.showNotification(this.messages.welcome, 'success');
+        
+        // Show interaction hint
+        setTimeout(() => {
+            this.showInteractionHint(true);
+        }, 1000);
     }
 
     setupThreeJS() {
@@ -88,6 +93,7 @@ class PanoramicViewer {
         
         // Mouse controls
         canvas.addEventListener('mousedown', (e) => {
+            this.showInteractionHint(false);
             isMouseDown = true;
             mouseX = e.clientX;
             mouseY = e.clientY;
@@ -119,6 +125,7 @@ class PanoramicViewer {
         let lastTouchX = 0, lastTouchY = 0;
         
         canvas.addEventListener('touchstart', (e) => {
+            this.showInteractionHint(false);
             e.preventDefault();
             const touch = e.touches[0];
             lastTouchX = touch.clientX;
@@ -204,11 +211,6 @@ class PanoramicViewer {
         // Reset camera button
         document.getElementById('resetCameraBtn').addEventListener('click', () => {
             this.resetCamera();
-        });
-
-        // Fullscreen button
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            this.toggleFullscreen();
         });
 
         // Drag and drop - Fixed implementation
@@ -482,11 +484,18 @@ class PanoramicViewer {
         this.camera.updateProjectionMatrix();
     }
 
-    toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+    showInteractionHint(show) {
+        const hint = document.getElementById('interactionHint');
+        if (show) {
+            hint.classList.add('visible');
+            // Auto-hide after 5 seconds if no interaction
+            setTimeout(() => {
+                if (hint.classList.contains('visible')) {
+                    hint.classList.remove('visible');
+                }
+            }, 5000);
         } else {
-            document.exitFullscreen();
+            hint.classList.remove('visible');
         }
     }
 
