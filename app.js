@@ -121,36 +121,69 @@ class PanoramicViewer {
             setTimeout(() => { this.isDragging = false; }, 100);
         });
 
-        // Touch controls
+        // Touch controls with pinch-to-zoom support
         let lastTouchX = 0, lastTouchY = 0;
+        let lastTouchDistance = 0;
         
         canvas.addEventListener('touchstart', (e) => {
             this.showInteractionHint(false);
             e.preventDefault();
-            const touch = e.touches[0];
-            lastTouchX = touch.clientX;
-            lastTouchY = touch.clientY;
-            this.isDragging = true;
+
+            if (e.touches.length === 1) {
+                // Single touch - Rotation
+                const touch = e.touches[0];
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
+                this.isDragging = true;
+            } else if (e.touches.length === 2) {
+                // Dual touch - Zoom (Pinch)
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+                this.isDragging = false; // Disable rotation while zooming
+            }
         });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - lastTouchX;
-            const deltaY = touch.clientY - lastTouchY;
             
-            phi += deltaX * 0.01;
-            theta += deltaY * 0.01;
-            theta = Math.max(-Math.PI/2, Math.min(Math.PI/2, theta));
-            
-            this.updateCameraRotation(phi, theta);
-            
-            lastTouchX = touch.clientX;
-            lastTouchY = touch.clientY;
+            if (e.touches.length === 1 && this.isDragging) {
+                // Single touch move - Rotation
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - lastTouchX;
+                const deltaY = touch.clientY - lastTouchY;
+                
+                phi += deltaX * 0.01;
+                theta += deltaY * 0.01;
+                theta = Math.max(-Math.PI/2, Math.min(Math.PI/2, theta));
+                
+                this.updateCameraRotation(phi, theta);
+                
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
+            } else if (e.touches.length === 2) {
+                // Dual touch move - Zoom (Pinch)
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Calculate zoom factor based on distance change
+                // Increasing distance (spreading fingers) -> Zoom IN (lower FOV)
+                // Decreasing distance (pinching) -> Zoom OUT (higher FOV)
+                const diff = lastTouchDistance - distance;
+                const sensitivity = 0.2; 
+                
+                const fov = this.camera.fov + diff * sensitivity;
+                this.camera.fov = Math.max(10, Math.min(100, fov));
+                this.camera.updateProjectionMatrix();
+                
+                lastTouchDistance = distance;
+            }
         });
 
         canvas.addEventListener('touchend', () => {
             setTimeout(() => { this.isDragging = false; }, 100);
+            lastTouchDistance = 0;
         });
 
         // Zoom controls
@@ -356,29 +389,51 @@ class PanoramicViewer {
     }
 
     loadPanorama(panorama) {
+        // Show loading indicator immediately
+        this.showLoading(true);
+
         // Clear existing panorama
         if (this.currentPanorama) {
             this.scene.remove(this.currentPanorama);
+            this.currentPanorama.geometry.dispose();
+            this.currentPanorama.material.map.dispose();
+            this.currentPanorama.material.dispose();
+            this.currentPanorama = null;
         }
 
         const loader = new THREE.TextureLoader();
-        loader.load(panorama.url, (texture) => {
-            // Create sphere geometry
-            const geometry = new THREE.SphereGeometry(500, 60, 40);
-            geometry.scale(-1, 1, 1); // Invert geometry to look inward
+        loader.load(
+            panorama.url, 
+            (texture) => {
+                // On load success
+                // Create sphere geometry
+                const geometry = new THREE.SphereGeometry(500, 60, 40);
+                geometry.scale(-1, 1, 1); // Invert geometry to look inward
 
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            const sphere = new THREE.Mesh(geometry, material);
-            
-            this.scene.add(sphere);
-            this.currentPanorama = sphere;
-            
-            // Update active gallery item
-            this.updateActiveGalleryItem(panorama.id);
-            
-            // Reset camera
-            this.resetCamera();
-        });
+                const material = new THREE.MeshBasicMaterial({ map: texture });
+                const sphere = new THREE.Mesh(geometry, material);
+                
+                this.scene.add(sphere);
+                this.currentPanorama = sphere;
+                
+                // Update active gallery item
+                this.updateActiveGalleryItem(panorama.id);
+                
+                // Reset camera
+                this.resetCamera();
+                
+                // Hide loading indicator
+                this.showLoading(false);
+            },
+            // On progress
+            undefined,
+            // On error
+            (err) => {
+                console.error('An error happened during texture loading.', err);
+                this.showLoading(false);
+                this.showNotification(this.messages.loadingError, 'error');
+            }
+        );
     }
 
     addToGallery(panorama) {
